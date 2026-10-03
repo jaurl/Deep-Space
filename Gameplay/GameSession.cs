@@ -1,5 +1,7 @@
 using SpaceFleet.Gameplay.Entities;
 using SpaceFleet.Gameplay.World;
+using SpaceFleet.Gameplay.Ships;
+using SpaceFleet.Gameplay.Stations;
 using PlayerCharacter = SpaceFleet.Gameplay.Player.Player;
 
 namespace SpaceFleet.Gameplay;
@@ -31,7 +33,22 @@ public sealed class GameSession
     {
         var entities = new EntityManager();
         foreach (var spawn in system.Entities)
-            entities.Spawn(spawn.Name, spawn.Type, spawn.Position);
+        {
+            switch (spawn.Type)
+            {
+                case EntityType.InterestPoint:
+                    entities.SpawnInterestPoint(spawn.Name, spawn.Position);
+                    break;
+                case EntityType.Ship:
+                    entities.SpawnShip(ShipDefinition.FromId(spawn.DefinitionId), spawn.Position, spawn.Name);
+                    break;
+                case EntityType.Station:
+                    entities.SpawnStation(StationDefinition.FromId(spawn.DefinitionId), spawn.Position, spawn.Name);
+                    break;
+                default:
+                    throw new InvalidDataException($"Unsupported entity type: {spawn.Type}");
+            }
+        }
 
         return entities;
     }
@@ -39,7 +56,8 @@ public sealed class GameSession
     private static PlayerCharacter CreatePlayer(
         NewGameSettings settings, SystemDefinition system, EntityManager entities)
     {
-        var ship = entities.Spawn(settings.StartingShipName, EntityType.Ship, system.PlayerSpawn);
-        return new PlayerCharacter(settings.PlayerName, settings.StartingCredits, ship.Id);
+        var definition = ShipDefinition.FromId(settings.StartingShipTypeId);
+        var ship = entities.SpawnShip(definition, system.PlayerSpawn, settings.StartingShipName);
+        return new PlayerCharacter(settings.PlayerName, settings.StartingCredits, ship);
     }
 }

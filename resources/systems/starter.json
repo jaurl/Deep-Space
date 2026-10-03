@@ -14,6 +14,16 @@
   },
   "entities": [
     {
+      "name": "Test Station",
+      "type": "station",
+      "definitionId": "testStation",
+      "position": {
+        "x": -107303362910.0,
+        "y": -18744975360.0,
+        "z": 436489052160.0
+      }
+    },
+    {
       "name": "Nearby Interest Point",
       "type": "interestPoint",
       "position": {

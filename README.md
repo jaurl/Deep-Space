@@ -2,6 +2,8 @@
 
 C# / .NET 10 with Raylib-cs 8.1.0 (raylib 6.0).
 
+See [the architecture review and growth plan](ARCHITECTURE_PLAN.md) for proposed next milestones.
+
 Double-click Run.cmd, or run `dotnet run --no-restore` in this folder.
 
 The menu has New Game, Continue, Options and Exit. New Game always creates a fresh session. Continue resumes the current session and is disabled until one exists. Saving and loading are not implemented yet.
@@ -17,13 +19,18 @@ Input.cs reads mouse and keyboard controls once per frame. Screens use this shar
 ## Gameplay structure
 
 - Gameplay/Player: player name, credits and active ship ID.
+- Gameplay/Ships and Gameplay/Stations: runtime instances and shared type definitions. Each definition fixes its sprite path and display size.
 - Gameplay/Entities: Entity value struct, EntityType enum, and session-owned collection with spawn, find, set-position and despawn operations. Update structs through EntityManager.SetPosition so the changed value is stored.
 - Gameplay/World: loads authored system definitions from resources/systems/.
 - Gameplay/AI, Combat, Mining, Exploration: reserved folders for future features.
 
 NewGameSettings holds the initial player name, credits, ship name and system ID. These are provisional starting values. New Game loads starter.json, spawns its authored entities and the player's ship, and replaces the old session. Continue keeps the existing session. The gameplay screen draws the player ship in black space with system and player details. Movement has not been added yet.
 
-System maps are fixed JSON definitions, not procedurally generated. Edit playerSpawn and entities in resources/systems/starter.json to author the layout. Each entity entry contains name, type (ship or interestPoint) and position (x, y, z). Runtime entity positions are separate from the original spawn positions.
+System maps are fixed JSON definitions, not procedurally generated. Edit playerSpawn and entities in resources/systems/starter.json to author the layout. Each entity entry contains name, type (ship, station or interestPoint) and position (x, y, z). Ships and stations also specify definitionId, currently testShip or testStation. Runtime entity positions are separate from the original spawn positions.
+
+New games start the player in Test Ship, which always uses resources/Sprites/Ships/TerranShip.png. Test Station always uses resources/Sprites/Stations/TerranStation.png and is placed 350 metres to the left of the player's starting position. Sprite heights are provisional: 96 metres for the ship and 960 metres for the station. Player.ChangeShip(Ship) changes the active ship ID without spawning, removing or relocating any ships; a switching UI has not been added yet.
+
+Rendering/SpriteRenderer.cs loads each texture once and shares it across instances. Textures are unloaded before the game window closes. Simulation classes store sprite definitions, with native graphics resources owned by the renderer.
 
 ## Distance reference
 

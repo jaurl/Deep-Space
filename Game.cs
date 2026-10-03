@@ -38,6 +38,7 @@ public sealed class Game
         }
         finally
         {
+            gameplayScreen.Dispose();
             Raylib.CloseWindow();
         }
     }

@@ -41,5 +41,6 @@ public sealed class EntitySpawn
 {
     public string Name { get; init; } = "";
     public EntityType Type { get; init; }
+    public string? DefinitionId { get; init; }
     public WorldPosition Position { get; init; }
 }

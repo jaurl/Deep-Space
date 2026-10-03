@@ -2,12 +2,14 @@ using System.Numerics;
 using Raylib_cs;
 using SpaceFleet.Gameplay;
 using SpaceFleet.Gameplay.Entities;
+using SpaceFleet.Rendering;
 
 namespace SpaceFleet.Screens;
 
-public sealed class GameplayScreen
+public sealed class GameplayScreen : IDisposable
 {
     private readonly ContextMenu contextMenu = new();
+    private readonly SpriteRenderer sprites = new();
 
     public void Reset() => contextMenu.Close();
 
@@ -28,20 +30,23 @@ public sealed class GameplayScreen
         // Start with a top-down view centred on the player's ship.
         foreach (var entity in session.Entities.All)
         {
+            var shipDefinition = session.Entities.FindShip(entity.Id)?.Definition;
+            var stationDefinition = session.Entities.FindStation(entity.Id)?.Definition;
+            var spritePath = shipDefinition?.SpritePath ?? stationDefinition?.SpritePath;
+            var spriteHeight = shipDefinition?.SpriteHeight ?? stationDefinition?.SpriteHeight ?? 0;
             var offset = entity.Position - ship.Position;
             // Cull distant objects in doubles before passing local values to raylib.
             // The current view uses one pixel per metre; system positions stay unchanged.
             var screenX = centre.X + offset.X;
             var screenY = centre.Y + offset.Z;
-            if (screenX < -32 || screenX > Raylib.GetScreenWidth() + 32 ||
-                screenY < -32 || screenY > Raylib.GetScreenHeight() + 32)
+            var margin = Math.Max(32, spriteHeight);
+            if (screenX < -margin || screenX > Raylib.GetScreenWidth() + margin ||
+                screenY < -margin || screenY > Raylib.GetScreenHeight() + margin)
                 continue;
 
             var position = new Vector2((float)screenX, (float)screenY);
-            if (entity.Type == EntityType.Ship)
-                Raylib.DrawTriangle(position + new Vector2(0, -18),
-                    position + new Vector2(-12, 12), position + new Vector2(12, 12),
-                    entity.Id == ship.Id ? Color.SkyBlue : Color.Gray);
+            if (spritePath is not null)
+                sprites.Draw(spritePath, spriteHeight, position);
             else if (entity.Type == EntityType.InterestPoint)
             {
                 Raylib.DrawCircleLines((int)position.X, (int)position.Y, 8, Color.Gray);
@@ -56,4 +61,6 @@ public sealed class GameplayScreen
             Raylib.GetScreenHeight() - 32, 18, Color.Gray);
         contextMenu.Draw(input);
     }
+
+    public void Dispose() => sprites.Dispose();
 }

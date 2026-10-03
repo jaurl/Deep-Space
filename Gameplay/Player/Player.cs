@@ -1,15 +1,23 @@
+using SpaceFleet.Gameplay.Ships;
+
 namespace SpaceFleet.Gameplay.Player;
 
 public sealed class Player
 {
     public string Name { get; }
     public decimal Credits { get; set; }
-    public Guid ActiveShipId { get; set; }
+    public Guid ActiveShipId { get; private set; }
 
-    public Player(string name, decimal credits, Guid activeShipId)
+    public Player(string name, decimal credits, Ship startingShip)
     {
         Name = name;
         Credits = credits;
-        ActiveShipId = activeShipId;
+        ChangeShip(startingShip);
+    }
+
+    public void ChangeShip(Ship ship)
+    {
+        ArgumentNullException.ThrowIfNull(ship);
+        ActiveShipId = ship.Id;
     }
 }
